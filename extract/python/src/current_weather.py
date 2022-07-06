@@ -44,7 +44,7 @@ def main(argv):
     
     # JSONL形式で出力する
     today = datetime.datetime.today().strftime("%Y%m%d")
-    filename = f"weather_{today}.jsonl"
+    filename = f"weather_{today}.json"
     with open(os.path.join(TEMP_FILE_DIR,filename),mode="w",encoding="utf-8") as f:
         for json_text in weather_json_list:
             f.write(json_text)
