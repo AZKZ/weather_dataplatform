@@ -1,6 +1,7 @@
 import datetime
 import airflow
 from airflow.providers.google.cloud.operators.datafusion import CloudDataFusionStartPipelineOperator
+
 import pendulum
 
 # DAG内のオペレータ共通のパラメータを定義する。
@@ -21,14 +22,16 @@ with airflow.DAG(
     'airflow_training',
     default_args=default_args,
     catchup=False,
+    schedule_interval=None,
     ) as dag:
 
     # Data Fusionのパイプラインを実行する。
     start_data_fusion_pipeline = CloudDataFusionStartPipelineOperator(
         location="us-west1",
-        pipeline_name="pipline-training_v3",
+        pipeline_name="pipline-training_v4",
         instance_name="pipeline-training",
         task_id="start_data_fusion_pipeline",
+        runtime_args={ "name":"{{ dag_run.conf['name'] }}"}
     )
 
     # 各タスクの依存関係を定義する。
