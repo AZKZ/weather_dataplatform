@@ -1,0 +1,164 @@
+{
+    "name": "pipline-training_v4",
+    "description": "Data Pipeline Application",
+    "artifact": {
+        "name": "cdap-data-pipeline",
+        "version": "6.6.0",
+        "scope": "SYSTEM"
+    },
+    "config": {
+        "resources": {
+            "memoryMB": 2048,
+            "virtualCores": 1
+        },
+        "driverResources": {
+            "memoryMB": 2048,
+            "virtualCores": 1
+        },
+        "connections": [
+            {
+                "from": "GCS:天候JSONファイル",
+                "to": "天候JSONの変換処理"
+            },
+            {
+                "from": "天候JSONの変換処理",
+                "to": "BigQueryへの登録"
+            }
+        ],
+        "comments": [],
+        "postActions": [],
+        "properties": {},
+        "processTimingEnabled": true,
+        "stageLoggingEnabled": false,
+        "stages": [
+            {
+                "name": "GCS:天候JSONファイル",
+                "plugin": {
+                    "name": "GCSFile",
+                    "type": "batchsource",
+                    "label": "GCS:天候JSONファイル",
+                    "artifact": {
+                        "name": "google-cloud",
+                        "version": "0.19.0",
+                        "scope": "SYSTEM"
+                    },
+                    "properties": {
+                        "useConnection": "true",
+                        "connection": "${conn(Cloud Storage Default)}",
+                        "referenceName": "cedar-setup-355408-datalake.weather_YYYYMMDD.json",
+                        "path": "gs://cedar-setup-355408-datalake/${name}",
+                        "format": "text",
+                        "sampleSize": "1000",
+                        "skipHeader": "false",
+                        "filenameOnly": "false",
+                        "recursive": "false",
+                        "encrypted": "false",
+                        "fileEncoding": "UTF-8",
+                        "schema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"body\",\"type\":\"string\"}]}"
+                    }
+                },
+                "outputSchema": [
+                    {
+                        "name": "etlSchemaBody",
+                        "schema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"body\",\"type\":\"string\"}]}"
+                    }
+                ],
+                "id": "GCS:天候JSONファイル",
+                "type": "batchsource",
+                "label": "GCS:天候JSONファイル",
+                "icon": "fa-plug"
+            },
+            {
+                "name": "天候JSONの変換処理",
+                "plugin": {
+                    "name": "Wrangler",
+                    "type": "transform",
+                    "label": "天候JSONの変換処理",
+                    "artifact": {
+                        "name": "wrangler-transform",
+                        "version": "4.6.0",
+                        "scope": "SYSTEM"
+                    },
+                    "properties": {
+                        "field": "*",
+                        "precondition": "false",
+                        "directives": "parse-as-json :body 1\nswap body_name body_id\nswap body_name body_id\nrename body_id city_id\nrename body_name pref_name\nrename city_id pref_id\nrename pref_id city_id\nrename pref_name city_name\nrename body_cod city_cod\nrename body_timezone city_timezone\nrename body_sys sys\nrename body_dt dt\nrename body_clouds clouds\nrename body_rain rain\nrename body_wind wind\nrename body_visibility visibility\nrename body_main body_temperature\nrename body_base base\nrename body_weather weather\nrename body_coord lat_lon\nrename body_temperature temperature\ndrop :wind,:rain,:clouds,:visibility,:sys,:city_cod,:base\nparse-as-json :weather 1",
+                        "on-error": "fail-pipeline",
+                        "schema": "{\"type\":\"record\",\"name\":\"record\",\"fields\":[{\"name\":\"lat_lon\",\"type\":{\"type\":\"record\",\"name\":\"lat_lon\",\"fields\":[{\"name\":\"lon\",\"type\":[\"double\",\"null\"]},{\"name\":\"lat\",\"type\":[\"double\",\"null\"]}]}},{\"name\":\"temperature\",\"type\":{\"type\":\"record\",\"name\":\"temperature\",\"fields\":[{\"name\":\"temp\",\"type\":[\"double\",\"null\"]},{\"name\":\"feels_like\",\"type\":[\"double\",\"null\"]},{\"name\":\"temp_min\",\"type\":[\"double\",\"null\"]},{\"name\":\"temp_max\",\"type\":[\"double\",\"null\"]},{\"name\":\"pressure\",\"type\":[\"long\",\"null\"]},{\"name\":\"humidity\",\"type\":[\"long\",\"null\"]}]}},{\"name\":\"dt\",\"type\":[\"long\",\"null\"]},{\"name\":\"city_timezone\",\"type\":[\"long\",\"null\"]},{\"name\":\"city_id\",\"type\":[\"long\",\"null\"]},{\"name\":\"city_name\",\"type\":[\"string\",\"null\"]},{\"name\":\"weather\",\"type\":{\"type\":\"record\",\"name\":\"weather\",\"fields\":[{\"name\":\"id\",\"type\":[\"long\",\"null\"]},{\"name\":\"main\",\"type\":[\"string\",\"null\"]},{\"name\":\"description\",\"type\":[\"string\",\"null\"]},{\"name\":\"icon\",\"type\":[\"string\",\"null\"]}]}}]}",
+                        "workspaceId": "c009cd16-a843-4892-b753-d4e63a32f3f0"
+                    }
+                },
+                "outputSchema": [
+                    {
+                        "name": "etlSchemaBody",
+                        "schema": "{\"type\":\"record\",\"name\":\"record\",\"fields\":[{\"name\":\"lat_lon\",\"type\":{\"type\":\"record\",\"name\":\"lat_lon\",\"fields\":[{\"name\":\"lon\",\"type\":[\"double\",\"null\"]},{\"name\":\"lat\",\"type\":[\"double\",\"null\"]}]}},{\"name\":\"temperature\",\"type\":{\"type\":\"record\",\"name\":\"temperature\",\"fields\":[{\"name\":\"temp\",\"type\":[\"double\",\"null\"]},{\"name\":\"feels_like\",\"type\":[\"double\",\"null\"]},{\"name\":\"temp_min\",\"type\":[\"double\",\"null\"]},{\"name\":\"temp_max\",\"type\":[\"double\",\"null\"]},{\"name\":\"pressure\",\"type\":[\"long\",\"null\"]},{\"name\":\"humidity\",\"type\":[\"long\",\"null\"]}]}},{\"name\":\"dt\",\"type\":[\"long\",\"null\"]},{\"name\":\"city_timezone\",\"type\":[\"long\",\"null\"]},{\"name\":\"city_id\",\"type\":[\"long\",\"null\"]},{\"name\":\"city_name\",\"type\":[\"string\",\"null\"]},{\"name\":\"weather\",\"type\":{\"type\":\"record\",\"name\":\"weather\",\"fields\":[{\"name\":\"id\",\"type\":[\"long\",\"null\"]},{\"name\":\"main\",\"type\":[\"string\",\"null\"]},{\"name\":\"description\",\"type\":[\"string\",\"null\"]},{\"name\":\"icon\",\"type\":[\"string\",\"null\"]}]}}]}"
+                    }
+                ],
+                "inputSchema": [
+                    {
+                        "name": "GCS:天候JSONファイル",
+                        "schema": "{\"type\":\"record\",\"name\":\"etlSchemaBody\",\"fields\":[{\"name\":\"body\",\"type\":\"string\"}]}"
+                    }
+                ],
+                "id": "天候JSONの変換処理",
+                "type": "transform",
+                "label": "天候JSONの変換処理",
+                "icon": "icon-DataPreparation"
+            },
+            {
+                "name": "BigQueryへの登録",
+                "plugin": {
+                    "name": "BigQueryTable",
+                    "type": "batchsink",
+                    "label": "BigQueryへの登録",
+                    "artifact": {
+                        "name": "google-cloud",
+                        "version": "0.19.0",
+                        "scope": "SYSTEM"
+                    },
+                    "properties": {
+                        "referenceName": "insert_bq",
+                        "project": "auto-detect",
+                        "dataset": "dataplatform_training",
+                        "table": "weather_2",
+                        "serviceAccountType": "filePath",
+                        "serviceFilePath": "auto-detect",
+                        "operation": "insert",
+                        "truncateTable": "false",
+                        "allowSchemaRelaxation": "false",
+                        "location": "US",
+                        "createPartitionedTable": "false",
+                        "partitioningType": "TIME",
+                        "partitionFilterRequired": "false",
+                        "schema": "{\"type\":\"record\",\"name\":\"record\",\"fields\":[{\"name\":\"lat_lon\",\"type\":{\"type\":\"record\",\"name\":\"lat_lon\",\"fields\":[{\"name\":\"lon\",\"type\":[\"double\",\"null\"]},{\"name\":\"lat\",\"type\":[\"double\",\"null\"]}]}},{\"name\":\"temperature\",\"type\":{\"type\":\"record\",\"name\":\"temperature\",\"fields\":[{\"name\":\"temp\",\"type\":[\"double\",\"null\"]},{\"name\":\"feels_like\",\"type\":[\"double\",\"null\"]},{\"name\":\"temp_min\",\"type\":[\"double\",\"null\"]},{\"name\":\"temp_max\",\"type\":[\"double\",\"null\"]},{\"name\":\"pressure\",\"type\":[\"long\",\"null\"]},{\"name\":\"humidity\",\"type\":[\"long\",\"null\"]}]}},{\"name\":\"dt\",\"type\":[\"long\",\"null\"]},{\"name\":\"city_timezone\",\"type\":[\"long\",\"null\"]},{\"name\":\"city_id\",\"type\":[\"long\",\"null\"]},{\"name\":\"city_name\",\"type\":[\"string\",\"null\"]},{\"name\":\"weather\",\"type\":{\"type\":\"record\",\"name\":\"weather\",\"fields\":[{\"name\":\"id\",\"type\":[\"long\",\"null\"]},{\"name\":\"main\",\"type\":[\"string\",\"null\"]},{\"name\":\"description\",\"type\":[\"string\",\"null\"]},{\"name\":\"icon\",\"type\":[\"string\",\"null\"]}]}}]}"
+                    }
+                },
+                "outputSchema": [
+                    {
+                        "name": "etlSchemaBody",
+                        "schema": "{\"type\":\"record\",\"name\":\"record\",\"fields\":[{\"name\":\"lat_lon\",\"type\":{\"type\":\"record\",\"name\":\"lat_lon\",\"fields\":[{\"name\":\"lon\",\"type\":[\"double\",\"null\"]},{\"name\":\"lat\",\"type\":[\"double\",\"null\"]}]}},{\"name\":\"temperature\",\"type\":{\"type\":\"record\",\"name\":\"temperature\",\"fields\":[{\"name\":\"temp\",\"type\":[\"double\",\"null\"]},{\"name\":\"feels_like\",\"type\":[\"double\",\"null\"]},{\"name\":\"temp_min\",\"type\":[\"double\",\"null\"]},{\"name\":\"temp_max\",\"type\":[\"double\",\"null\"]},{\"name\":\"pressure\",\"type\":[\"long\",\"null\"]},{\"name\":\"humidity\",\"type\":[\"long\",\"null\"]}]}},{\"name\":\"dt\",\"type\":[\"long\",\"null\"]},{\"name\":\"city_timezone\",\"type\":[\"long\",\"null\"]},{\"name\":\"city_id\",\"type\":[\"long\",\"null\"]},{\"name\":\"city_name\",\"type\":[\"string\",\"null\"]},{\"name\":\"weather\",\"type\":{\"type\":\"record\",\"name\":\"weather\",\"fields\":[{\"name\":\"id\",\"type\":[\"long\",\"null\"]},{\"name\":\"main\",\"type\":[\"string\",\"null\"]},{\"name\":\"description\",\"type\":[\"string\",\"null\"]},{\"name\":\"icon\",\"type\":[\"string\",\"null\"]}]}}]}"
+                    }
+                ],
+                "inputSchema": [
+                    {
+                        "name": "天候JSONの変換処理",
+                        "schema": "{\"type\":\"record\",\"name\":\"record\",\"fields\":[{\"name\":\"lat_lon\",\"type\":{\"type\":\"record\",\"name\":\"lat_lon\",\"fields\":[{\"name\":\"lon\",\"type\":[\"double\",\"null\"]},{\"name\":\"lat\",\"type\":[\"double\",\"null\"]}]}},{\"name\":\"temperature\",\"type\":{\"type\":\"record\",\"name\":\"temperature\",\"fields\":[{\"name\":\"temp\",\"type\":[\"double\",\"null\"]},{\"name\":\"feels_like\",\"type\":[\"double\",\"null\"]},{\"name\":\"temp_min\",\"type\":[\"double\",\"null\"]},{\"name\":\"temp_max\",\"type\":[\"double\",\"null\"]},{\"name\":\"pressure\",\"type\":[\"long\",\"null\"]},{\"name\":\"humidity\",\"type\":[\"long\",\"null\"]}]}},{\"name\":\"dt\",\"type\":[\"long\",\"null\"]},{\"name\":\"city_timezone\",\"type\":[\"long\",\"null\"]},{\"name\":\"city_id\",\"type\":[\"long\",\"null\"]},{\"name\":\"city_name\",\"type\":[\"string\",\"null\"]},{\"name\":\"weather\",\"type\":{\"type\":\"record\",\"name\":\"weather\",\"fields\":[{\"name\":\"id\",\"type\":[\"long\",\"null\"]},{\"name\":\"main\",\"type\":[\"string\",\"null\"]},{\"name\":\"description\",\"type\":[\"string\",\"null\"]},{\"name\":\"icon\",\"type\":[\"string\",\"null\"]}]}}]}"
+                    }
+                ],
+                "id": "BigQueryへの登録",
+                "type": "batchsink",
+                "label": "BigQueryへの登録",
+                "icon": "fa-plug"
+            }
+        ],
+        "schedule": "0 1 */1 * *",
+        "engine": "spark",
+        "numOfRecordsPreview": 100,
+        "rangeRecordsPreview": {
+            "min": 1,
+            "max": "5000"
+        },
+        "description": "Data Pipeline Application",
+        "maxConcurrentRuns": 1
+    }
+}
