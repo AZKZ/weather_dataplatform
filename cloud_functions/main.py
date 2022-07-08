@@ -7,7 +7,9 @@ IAM_SCOPE = 'https://www.googleapis.com/auth/iam'
 OAUTH_TOKEN_URI = 'https://www.googleapis.com/oauth2/v4/token'
 # If you are using the stable API, set this value to False
 # For more info about Airflow APIs see https://cloud.google.com/composer/docs/access-airflow-api
-USE_EXPERIMENTAL_API = False
+    # 安定版のAPIを使用するならFa;se
+    # Airflow1は安定版ではなく試験運用版なのでTrueのままでよい
+USE_EXPERIMENTAL_API = True
 
 AIRFLOW_CLIENT_ID = os.environ.get("AIRFLOW_CLIENT_ID")
 WEB_SERVER_ID = os.environ.get("WEB_SERVER_ID") # {WEB_SERVER_ID}.appspot.com
