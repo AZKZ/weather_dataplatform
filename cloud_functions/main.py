@@ -3,11 +3,6 @@ from google.auth.transport.requests import Request
 from google.oauth2 import id_token
 import requests
 
-import google.cloud.logging
-client = google.cloud.logging.Client()
-client.setup_logging()
-import logging
-
 IAM_SCOPE = 'https://www.googleapis.com/auth/iam'
 OAUTH_TOKEN_URI = 'https://www.googleapis.com/oauth2/v4/token'
 # If you are using the stable API, set this value to False
@@ -20,21 +15,18 @@ DAG_NAME = "airflow_training"
 FILE_PREFIX = "weather_"
 FILE_SUFIX = ".json"
 
-client = google.cloud.logging.Client()
-client.setup_logging()
-
 def trigger_dag(data,context=None):
-    logging.debug("data:{data}")
+    print(f"data:{data}")
 
     # ====== ファイル名のチェック ======
     file_name = data['name']
-    logging.debug("file_name:{file_name}")
+    print(f"file_name:{file_name}")
     
     yyyymmdd = file_name.replace(FILE_PREFIX,"").replace(FILE_SUFIX,"")
-    logging.debug("yyyymmdd:{yyyymmdd}")
+    print(f"yyyymmdd:{yyyymmdd}")
 
     # 数字ではない or 文字数が6ではない場合は処理を終了する
-    if (not yyyymmdd.isdigit()) | (not len(yyyymmdd) == 6):
+    if (not yyyymmdd.isdigit()) | (not len(yyyymmdd) == 8):
         return None
     
     # ====== Airflow REST API実行 ======
@@ -52,7 +44,7 @@ def trigger_dag(data,context=None):
         + endpoint
     )
 
-    logging.debug("webserver_url:{webserver_url}")
+    print(f"webserver_url:{webserver_url}")
 
     # Make a POST request to IAP which then Triggers the DAG
     make_iap_request(
